@@ -1,0 +1,65 @@
+
+# Assignment 1 (CS-525) Storage Manager
+
+The goal of this assignment is to implement a simple storage manager - a module that is capable of reading blocks from a file on disk into memory and writing blocks from memory to a file on disk. 
+
+## Instructions to Run the Code:
+
+On a linux system, run the following instructions. Navigate to the assignment directory and then execute the commands shown below:
+
+$ make
+
+$ ./test_assign1 
+
+$ valgrind --leak-check=full --track-origins=yes ./test_assign1
+
+
+## There are 3 types of functions in this program. They are:
+  
+    1) Read Functions
+    2) Write Functions
+    3) File manipulation functions
+## The following functions are available in the storage manager file and are file manipulation functions: 
+
+    1) createPageFile()
+        A new page file will be created using this function. The first file will be one page in size. 
+    2) openPageFile()
+        This procedure is used to open a previously saved file. If the file is identified, this function will open it; otherwise, an error message displaying "RC FILE NOT FOUND" will be displayed. 
+    3) closePageFile()
+        This function will close the previously opened file. 
+    4) destroyPageFile()
+        This function will delete the previously produced page file. 
+
+
+## The following functions are available in the storage manager file and are Read functions: 
+
+    1) readBlock()
+        This method is used to read a previously entered file. If the file is detected, the entered block of that file will be read. If the file is not found, an error will be thrown. 
+    2) getBlockPos()
+        This method in the file returns the current page position. 
+    3) readFirstBlock()
+        This function assists the file in reading pages from the first block. If the file is not identified or located, an error message will be displayed. 
+    4) readPreviousBlock()
+        Using the current page location, this method will assist the file in reading pages from the preceding block. If the file is not identified or located, an error message will be displayed. 
+    5) readCurrentBlock()
+        It is used to read the current file block. 
+    6) readNextBlock()
+        Using the current page location, this method will assist the file in reading pages from the following block. If the current page position is the last block, an error message will be displayed. 
+    7) readLastBlock()
+        This method will assist the file in reading pages from the previous block. If the file is empty or not found, this method will return an error. 
+
+## The following functions are available in the storage manager file and are Write functions: 
+    1) writeBlock()
+        This function will assist you in writing a page to disk in a file using the page Number. If the page is present, this function will write it to the disk; otherwise, an error message will be shown. 
+    2) writeCurrentBlock()
+        This function will assist you in writing a page to disk in a file based on its current location. 
+    3) appendEmptyBlock()
+        This function will assist in the addition of a page at the end of the file. 
+    4) ensureCapacity()
+        This function will be used to ensure that the number of pages in the file does not go below the 'numberofPages' value. If the file is not found, this method will insert an empty block at the end. 
+
+## Test Cases:
+    1) testCreateOpenClose()	
+        It checks to see if the code is capable of creating, opening, closing, and deleting a page file. 
+    2) testSinglePageContent()	
+        It validated all of the preceding situations, as well as determining if the data may be read or put into the specified page files. 
