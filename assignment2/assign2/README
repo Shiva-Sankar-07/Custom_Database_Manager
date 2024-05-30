@@ -1,0 +1,86 @@
+Assignment 2 (CS-525) Buffer Manager
+-------------------------------------
+The goal of this assignment is to implement a simple buffer manager. The buffer manager manages a fixed number of pages in memory that represent pages from a page file managed by the storage manager.
+
+
+Instructions to Run the Code:
+----------------------------
+On a linux system, open the terminal. Navigate to the assignment directory and then run the following commands shown below:
+
+$ ls                  #to list all the files and check if we are in the correct directory
+$ make clean          #to delete old compiled .o files
+$ make                #to compile the files   
+$ ./assign2           #to run the test cases
+
+We designed this buffer manager with memory management in mind, releasing any reserved space wherever feasible. Page replacement techniques including FIFO (First In First Out), LRU (Least Recently Used), LFU (Least Frequently Used), and CLOCK have been employed.
+
+There are 4 parts in the assignment. They are:
+1. Buffer Manager Interface Pool Handling 
+2. Buffer Manager Interface Access Pages 
+3. Page Replacement Algorithm Functions  
+4. Statics Interface 
+    
+Buffer Manager Interface Pool Handling:
+Use the buffer pool-related routines to create a buffer pool for an existing page file on disc. The buffer pool is built in memory while the page file is on disc. Storage Manager is used to conduct actions on a page file on disc (Assignment 1).
+
+As per the assignment requirement, we have 3 functions in buffer management interface pool handling. They are:
+1. initBufferPool(..)
+	This function creates a new memory buffer pool. It also sets the buffer's node count to 1, indicating that no pages are accessible in the buffer. The parameter numPages specifies the buffer size, i.e. the number of page frames that may be stored in the buffer. The pageFileName option holds the name of the page file whose pages are cached in memory. The parameter strategy denotes the page replacement technique (FIFO, LRU, LFU, CLOCK) that this buffer pool will employ. The parameter stratData is used to pass parameters to the page replacement strategy, if any exist.
+
+2. shutdownBufferPool(..) 
+	This function destroys a buffer pool. This method should free up all resources associated with buffer pool. For example, it should free the memory allocated for page frames. If the buffer pool contains any dirty pages, then these pages should be written back to disk before destroying the pool. It is an error to shutdown a buffer pool that has pinned pages.       
+
+3. forceFlushPool(..)
+	This function is used to shutdown, or delete, the buffer pool and set all of its values to null. Before removing the buffer pool, we execute forceFlushPool(...), which writes all dirty (modified) pages to disc. If any user accesses any page, the RC PINNED PAGES IN BUFFER error is thrown.
+
+  
+Buffer Manager Interface Access Pages: 
+The buffer manager interface access pages load pages from disc into the buffer pool (pin pages), remove a page frame from the buffer pool (unpin page), flag a page as unclean, and cause a page frame to be written to disc.
+
+As per the assignment requirement, we have 4 functions in buffer manager interface access pages. They are:
+1. markDirty(..)
+	This method changes the dirtyBit of a certain page frame to 1. It finds the page frame using pageNum by repeatedly checking each page in the buffer pool, and when the page id is discovered, dirtyBit = 1 is set for that page.        
+
+2. unpinPage(..)
+	If the page is discovered in the buffer that was previously pinned, this function unpins it and decreases the fixCount by one, indicating that the client is no longer accessing this page. Otherwise, an error is thrown.
+
+3. forcePage(..)
+	This function essentially writes a page back to the disc file. Even if it is filthy, it will force it to save to the file and make the required modifications to the parameters. It writes the page back to the file on disc using the Storage Manager services. It sets dirtyBit = 0 for that page after writing.            
+	   
+4. pinPage(..)
+	This function serves two primary purposes. Return the requested page to the user if it is available in the buffer. If the buffer is full, use strategy to acquire the page from the file, add it to the buffer, or replace it with any other node, and then return it to the user. We have implemented the FIFO, LRU, LFU, and CLOCK page replacement techniques when pinning a page. Page replacement algorithms identify which pages must be replaced. If a page is found to be unclean, it is checked. If dirtyBit = 1, the contents of the page frame are written to the page file on disc, and the new page is inserted where the previous page was.        
+
+Page Replacement Algorithm Functions: 
+The page replacement strategy functions implement the FIFO, LRU, LFU, and CLOCK algorithms for pinning a page. If the buffer pool is full and a new page has to be pinned, use a page from the buffer pool instead. These page replacement techniques specify which buffer pool pages must be replaced.
+
+We implemented four page replacement algorithms. They are:
+1. FIFO(..) 
+	The most basic page replacement approach is first in, first out (FIFO). We keep a global integer variable that is increased whenever a page is changed. (global variable) % buffer_length allows us to specify which page must be erased at each round. FIFO is similar to a queue in that the first page in the buffer pool is at the front, and if the buffer pool is full, the first page in the buffer pool is replaced. 
+	       
+2. LFU(..)
+	Least Frequently Used (LFU) eliminates the page frame in the buffer pool that is used the fewest often (the fewest number of times) compared to the other page frames. A global integer variable keeps track of how many times each page in memory has been accessed. The page with the fewest references is eliminated.
+
+3. LRU(..)
+	Least Recently Used (LRU) removes the page frame that hasn't been used in a long time (the least recent) from the buffer pool. A global integer variable allows us to keep track of the order in which the pages arrived.
+		
+4. Clock(..)
+	The CLOCK algorithm keeps track of the last page frame added to the buffer pool. In addition, to point the page frames in the buffer pool, we utilise a clockPointer, which is a counter. A clock pointer is kept that points to the frame where the replacement algorithm begins. Another variable is toggled between 1 and 0, and if this variable is 1, this page is given a second chance, and the value is toggled to 0 and the pointer is incremented to continue looking for a page to replace. If the variable value is 0 and the page is the first to arrive, it gets replaced.   
+    
+Statics Interface: 
+The statistics interface functions are used to collect information about the buffer pool. As a result, it provides a wide range of statistical data about the buffer pool.
+
+As per the assignment requirement, we have 5 functions in statics interface. They are:
+1. getFrameContents(..)
+	This method returns a list of all the contents of the buffer pool pages. The size of the list equals the size of the buffer (numPages). We loop through all of the page frames in the buffer pool to determine the pageNum value of the page frames in the buffer pool. The page number of the page saved in the 'n'th page frame is the 'n'th element.
+    
+2. getDirtyFlags(..)
+	This method produces a list of all the filthy pages that are currently stored in the buffer pool. The list size equals the buffer size (numPages). We loop through all of the page frames in the buffer pool to obtain the dirtyBit value of the page frames in the buffer pool. If the page saved in the 'n'th page frame is filthy, the 'n'th element is TRUE.
+
+3. getFixCounts(..)
+	This method produces a list of the fix counts for all the pages in the buffer pool. The length of the list equals the length of the buffer (numPages). We loop over all of the page frames in the buffer pool to acquire the fixCount value of the page frames in the buffer pool. The fixCount of the page saved in the 'n'th page frame is the 'n'th element.
+
+4. getNumReadIO(..)
+	This method returns the total number of IO read counts done by the buffer pool, i.e. the number of disc pages read. We keep track of this information with the rearIndex variable.
+        
+5. getNumWriteIO(..)
+	This method returns the total number of IO write counts performed by the buffer pool, i.e. the number of disc pages written. The writeCount variable is used to keep track of this information. When the buffer pool is created, we set writeCount to 0 and increase it everytime a page frame is written to disc.
